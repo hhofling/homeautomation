@@ -1,0 +1,244 @@
+# Conversational AI voice hub ("Hemma AI").
+#
+# Claude (the Anthropic integration) is the conversation agent. These
+# scripts are the tools it calls for notes, games and randomness. Each
+# script must be exposed to Assist after the first restart:
+#   Settings > Voice assistants > Expose > + Expose entities > pick the
+#   four script.ai_* entities, input_number.quiz_rekord and todo.anteckningar
+# Their descriptions below are what Claude reads to decide when to use them,
+# so keep them clear. See docs/VOICE-ASSISTANT.md for the whole setup.
+#
+# Notes live in a Local To-do list named "Anteckningar" (entity
+# todo.anteckningar). Local To-do can only be created in the UI:
+#   Settings > Devices & services > Add integration > Local To-do >
+#   name it "Anteckningar".
+
+input_number:
+  quiz_rekord:
+    name: Quizrekord
+    min: 0
+    max: 1000
+    step: 1
+    mode: box
+    icon: mdi:trophy
+
+input_text:
+  quiz_rekordhallare:
+    name: Quizrekord innehas av
+    max: 100
+    icon: mdi:account-star
+
+script:
+  ai_spara_anteckning:
+    alias: "AI: spara anteckning"
+    description: >-
+      Sparar en anteckning åt användaren i listan Anteckningar. Använd när
+      användaren ber dig anteckna, komma ihåg, skriva upp eller spara något.
+      Rubriken ska vara kort (högst ca 8 ord); lägg detaljer i beskrivningen.
+    icon: mdi:note-plus
+    mode: queued
+    fields:
+      rubrik:
+        name: Rubrik
+        description: Kort rubrik för anteckningen.
+        required: true
+        selector:
+          text:
+      beskrivning:
+        name: Beskrivning
+        description: Valfria detaljer, hela texten om den är lång.
+        required: false
+        selector:
+          text:
+            multiline: true
+    sequence:
+      - action: todo.add_item
+        target:
+          entity_id: todo.anteckningar
+        data:
+          item: "{{ rubrik }}"
+          description: "{{ beskrivning | default('', true) }}"
+      - variables:
+          resultat:
+            sparad: true
+            rubrik: "{{ rubrik }}"
+      - stop: Anteckningen är sparad
+        response_variable: resultat
+
+  ai_las_anteckningar:
+    alias: "AI: läs anteckningar"
+    description: >-
+      Hämtar användarens sparade anteckningar som inte är avbockade, nyaste
+      sist. Använd när användaren frågar vad som är antecknat, vad hen bad dig
+      komma ihåg, eller vill höra sina anteckningar.
+    icon: mdi:note-search
+    mode: parallel
+    fields:
+      max_antal:
+        name: Max antal
+        description: Hur många av de senaste anteckningarna som ska hämtas (standard 20).
+        required: false
+        selector:
+          number:
+            min: 1
+            max: 100
+            mode: box
+    sequence:
+      - action: todo.get_items
+        target:
+          entity_id: todo.anteckningar
+        data:
+          status: needs_action
+        response_variable: lista
+      - variables:
+          alla: "{{ lista['todo.anteckningar']['items'] }}"
+          grans: "{{ max_antal | default(20, true) | int(20) }}"
+      - variables:
+          resultat:
+            totalt_antal: "{{ alla | count }}"
+            anteckningar: "{{ alla[-grans:] | map(attribute='summary') | list }}"
+            detaljer: >-
+              {%- set ns = namespace(d=[]) -%}
+              {%- for i in alla[-grans:] if i.description is defined and i.description -%}
+                {%- set ns.d = ns.d + [i.summary ~ ': ' ~ i.description] -%}
+              {%- endfor -%}
+              {{ ns.d }}
+      - stop: Här är anteckningarna
+        response_variable: resultat
+
+  ai_bocka_av_anteckning:
+    alias: "AI: bocka av anteckning"
+    description: >-
+      Bockar av (markerar som klar) en anteckning. Rubriken måste stämma exakt
+      med en rubrik från "AI: läs anteckningar", så läs listan först om du är
+      osäker. Använd när användaren säger att något är klart eller ska strykas.
+    icon: mdi:note-check
+    mode: queued
+    fields:
+      rubrik:
+        name: Rubrik
+        description: Exakt rubrik på anteckningen som ska bockas av.
+        required: true
+        selector:
+          text:
+    sequence:
+      - action: todo.update_item
+        target:
+          entity_id: todo.anteckningar
+        data:
+          item: "{{ rubrik }}"
+          status: completed
+      - variables:
+          resultat:
+            avbockad: "{{ rubrik }}"
+      - stop: Avbockad
+        response_variable: resultat
+
+  ai_slumpa:
+    alias: "AI: slumpa tal"
+    description: >-
+      Ger riktigt slumpmässiga heltal. Använd alltid detta i spel när du ska
+      slå tärning, singla slant, dra lott, välja vem som börjar eller välja
+      en slumpmässig fråga, kategori eller bokstav, i stället för att hitta på
+      ett tal själv. För en bokstav: slumpa 1-29 och använd svenska alfabetet
+      A-Ö.
+    icon: mdi:dice-multiple
+    mode: parallel
+    fields:
+      minsta:
+        name: Minsta
+        description: Lägsta möjliga tal (standard 1).
+        required: false
+        selector:
+          number:
+            min: -1000
+            max: 1000
+            mode: box
+      storsta:
+        name: Största
+        description: Högsta möjliga tal (standard 6, som en tärning).
+        required: false
+        selector:
+          number:
+            min: -1000
+            max: 1000
+            mode: box
+      antal:
+        name: Antal
+        description: Hur många tal (standard 1, högst 20).
+        required: false
+        selector:
+          number:
+            min: 1
+            max: 20
+            mode: box
+    sequence:
+      - variables:
+          lag: "{{ minsta | default(1, true) | int(1) }}"
+          hog: "{{ storsta | default(6, true) | int(6) }}"
+          n: "{{ [[antal | default(1, true) | int(1), 1] | max, 20] | min }}"
+      - variables:
+          resultat:
+            tal: >-
+              {%- set a = [lag, hog] | min -%}
+              {%- set b = [lag, hog] | max -%}
+              {%- set ns = namespace(t=[]) -%}
+              {%- for _ in range(n) -%}
+                {%- set ns.t = ns.t + [range(a, b + 1) | random] -%}
+              {%- endfor -%}
+              {{ ns.t }}
+      - stop: Slumpat
+        response_variable: resultat
+
+  ai_quizrekord:
+    alias: "AI: quizrekord"
+    description: >-
+      Läser och uppdaterar hushållets quizrekord (flest rätt i ett quiz). Anropa
+      utan poäng för att höra nuvarande rekord. Anropa med poäng och spelare
+      när ett quiz är slut; rekordet sparas bara om det är högre än det gamla.
+      Svaret säger om det blev nytt rekord.
+    icon: mdi:trophy
+    mode: queued
+    fields:
+      poang:
+        name: Poäng
+        description: Antal rätt i quizet som just slutade.
+        required: false
+        selector:
+          number:
+            min: 0
+            max: 1000
+            mode: box
+      spelare:
+        name: Spelare
+        description: Vem som fick poängen.
+        required: false
+        selector:
+          text:
+    sequence:
+      - variables:
+          gammalt: "{{ states('input_number.quiz_rekord') | int(0) }}"
+          gammal_innehavare: "{{ states('input_text.quiz_rekordhallare') }}"
+          nytt: "{{ poang is defined and poang | int(0) > (states('input_number.quiz_rekord') | int(0)) }}"
+      - if:
+          - condition: template
+            value_template: "{{ nytt }}"
+        then:
+          - action: input_number.set_value
+            target:
+              entity_id: input_number.quiz_rekord
+            data:
+              value: "{{ poang | int }}"
+          - action: input_text.set_value
+            target:
+              entity_id: input_text.quiz_rekordhallare
+            data:
+              value: "{{ spelare | default('Okänd', true) }}"
+      - variables:
+          resultat:
+            nytt_rekord: "{{ nytt }}"
+            rekord: "{{ poang | int if nytt else gammalt }}"
+            innehavare: "{{ spelare | default('Okänd', true) if nytt else gammal_innehavare }}"
+            tidigare_rekord: "{{ gammalt }}"
+      - stop: Rekordet är kontrollerat
+        response_variable: resultat

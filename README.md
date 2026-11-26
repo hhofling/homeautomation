@@ -7,8 +7,11 @@ Google Home/Nest and anything Matter or Zigbee.
 
 - `homeassistant/`: Home Assistant config (`/config` on the HA box)
   - `packages/house_modes.yaml`: cross-brand house modes (Hemma/Borta/Natt/Semester) that lower heating and turn off lights across all brands
+  - `packages/voice_assistant.yaml`: notes, dice and quiz-record tools for the AI voice assistant
+  - `voice/claude_instruktioner.txt`: Swedish instructions for the Claude conversation agent (games, notes, reply style)
 - `esphome/plejd-bluetooth-proxy.yaml`: ESP32 Bluetooth proxy so HA reaches Plejd from anywhere
 - `docs/INTEGRATIONS.md`: per-brand integration route, credentials needed and limits
+- `docs/VOICE-ASSISTANT.md`: conversational AI voice hub (questions, games, notes, home control) with Claude, HA Cloud speech and Voice Preview Edition satellites
 - `docs/FIBARO-MIGRATION.md`: moving Z-Wave devices and scenes off the Fibaro Home Center
 - `scripts/fibaro_inventory.py`: lists every Fibaro device, room and scene before you migrate
 - `.github/workflows/check-config.yml`: validates the HA config on every push
@@ -25,6 +28,7 @@ Credentials never go in this repo. You need:
 6. **Adax**: Account ID and API password from the Adax app (Account > Third party integrations > Remote API).
 7. **Ebeco Connect**: Ebeco app email and password.
 8. **Tapo**: TP-Link account email and password; fixed IPs in your router; for cameras, a camera account set in the Tapo app.
-9. **Google**: for Nest thermostats/cameras, a Device Access registration (US$5); for "Hey Google" voice control, a Home Assistant Cloud subscription.
+9. **AI voice assistant** (optional): a Home Assistant Voice Preview Edition per room (~700–800 kr each), a Home Assistant Cloud subscription (~€7.50/month, also covers "Hey Google" below) and an Anthropic API key with prepaid credits and a spend limit. See [docs/VOICE-ASSISTANT.md](docs/VOICE-ASSISTANT.md).
+10. **Google**: for Nest thermostats/cameras, a Device Access registration (US$5); for "Hey Google" voice control, a Home Assistant Cloud subscription.
 
 Then follow the setup order in [docs/INTEGRATIONS.md](docs/INTEGRATIONS.md).
