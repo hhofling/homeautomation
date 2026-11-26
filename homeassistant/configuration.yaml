@@ -1,6 +1,6 @@
 # Home Assistant: one hub for every ecosystem in the house.
 #
-# Almost every brand integration (Fibaro, Hue, SmartThings, Adax, Tapo,
+# Almost every brand integration (Z-Wave JS, Hue, SmartThings, Adax, Tapo,
 # Plejd, Ebeco, Google Cast, Nest, Matter) is added in the UI under
 # Settings > Devices & services, and its credentials live in .storage/,
 # not here. See docs/INTEGRATIONS.md for the per-brand steps.
@@ -33,7 +33,7 @@ logger:
     # Turn up while getting the trickier integrations working.
     custom_components.plejd: info
     custom_components.ebeco: info
-    homeassistant.components.fibaro: info
+    homeassistant.components.zwave_js: info
 
 recorder:
   purge_keep_days: 30

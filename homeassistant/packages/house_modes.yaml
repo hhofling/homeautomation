@@ -33,10 +33,10 @@ input_number:
 group:
   all_heaters:
     name: Alla värmare
-    entities: []   # climate.adax_*, climate.ebeco_*, climate.fibaro_*
+    entities: []   # climate.adax_*, climate.ebeco_*, climate.<z-wave thermostats>
   all_lights:
     name: Alla lampor
-    entities: []   # light.hue_*, light.plejd_*, light.fibaro_*, light.tapo_*
+    entities: []   # light.hue_*, light.plejd_*, light.<z-wave dimmers>, light.tapo_*
 
 automation:
   - id: house_mode_away

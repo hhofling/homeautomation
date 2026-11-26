@@ -13,3 +13,4 @@ homeassistant/tts/
 homeassistant/deps/
 esphome/.esphome/
 .DS_Store
+fibaro-export/

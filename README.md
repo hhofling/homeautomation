@@ -1,6 +1,7 @@
 # Home automation
 
-One Home Assistant hub for every system in the house: Fibaro Home Center,
+One Home Assistant hub for every system in the house: Z-Wave devices
+(moved off the Fibaro Home Center),
 Philips Hue, Samsung SmartThings, Plejd, Adax, Ebeco Connect, TP-Link Tapo,
 Google Home/Nest and anything Matter or Zigbee.
 
@@ -8,14 +9,16 @@ Google Home/Nest and anything Matter or Zigbee.
   - `packages/house_modes.yaml`: cross-brand house modes (Hemma/Borta/Natt/Semester) that lower heating and turn off lights across all brands
 - `esphome/plejd-bluetooth-proxy.yaml`: ESP32 Bluetooth proxy so HA reaches Plejd from anywhere
 - `docs/INTEGRATIONS.md`: per-brand integration route, credentials needed and limits
+- `docs/FIBARO-MIGRATION.md`: moving Z-Wave devices and scenes off the Fibaro Home Center
+- `scripts/fibaro_inventory.py`: lists every Fibaro device, room and scene before you migrate
 - `.github/workflows/check-config.yml`: validates the HA config on every push
 
 ## What you need to do yourself
 
 Credentials never go in this repo. You need:
 
-1. **Hardware**: a Home Assistant box (Home Assistant Green, Raspberry Pi 5 or mini PC). Optional: one ESP32 board (~100 kr) as a Plejd Bluetooth proxy.
-2. **Fibaro**: HC IP address and a dedicated Fibaro user with password.
+1. **Hardware**: a Home Assistant box (Home Assistant Green recommended; a Raspberry Pi 4/5 works if it boots from an SSD) and an **EU 868.4 MHz** USB Z-Wave stick with a USB extension cable. Optional: one ESP32 board (~100 kr) as a Plejd Bluetooth proxy.
+2. **Fibaro**: HC IP address and admin login, to run the inventory script and exclude devices. You also need physical access to every Z-Wave device (to press its button) and the S2 PIN/QR code printed on each device or its box.
 3. **Hue**: be by the bridge to press its button.
 4. **SmartThings**: your Samsung account login.
 5. **Plejd**: Plejd app email and password.
