@@ -1,0 +1,43 @@
+# Home Assistant: one hub for every ecosystem in the house.
+#
+# Almost every brand integration (Fibaro, Hue, SmartThings, Adax, Tapo,
+# Plejd, Ebeco, Google Cast, Nest, Matter) is added in the UI under
+# Settings > Devices & services, and its credentials live in .storage/,
+# not here. See docs/INTEGRATIONS.md for the per-brand steps.
+
+homeassistant:
+  name: Hemma
+  unit_system: metric
+  currency: SEK
+  country: SE
+  language: sv
+  time_zone: Europe/Stockholm
+  latitude: !secret home_latitude
+  longitude: !secret home_longitude
+  elevation: !secret home_elevation
+  # Everything in packages/ is merged into this config.
+  packages: !include_dir_named packages
+
+# Dashboard, history, energy, Bluetooth, Matter discovery, mobile app, etc.
+default_config:
+
+http:
+  # Uncomment if you put HA behind a reverse proxy (e.g. NGINX add-on).
+  # use_x_forwarded_for: true
+  # trusted_proxies:
+  #   - 172.30.33.0/24
+
+logger:
+  default: warning
+  logs:
+    # Turn up while getting the trickier integrations working.
+    custom_components.plejd: info
+    custom_components.ebeco: info
+    homeassistant.components.fibaro: info
+
+recorder:
+  purge_keep_days: 30
+
+automation: !include automations.yaml
+script: !include scripts.yaml
+scene: !include scenes.yaml

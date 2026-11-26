@@ -1,0 +1,71 @@
+# Cross-brand house modes. These work no matter which brand a device comes
+# from, once the devices are added to the matching areas/groups below.
+
+input_select:
+  house_mode:
+    name: Husläge
+    icon: mdi:home-switch
+    options:
+      - Hemma
+      - Borta
+      - Natt
+      - Semester
+
+input_number:
+  comfort_temperature:
+    name: Komforttemperatur
+    min: 15
+    max: 25
+    step: 0.5
+    unit_of_measurement: "°C"
+    icon: mdi:thermometer
+  away_temperature:
+    name: Bortatemperatur
+    min: 5
+    max: 20
+    step: 0.5
+    unit_of_measurement: "°C"
+    icon: mdi:thermometer-low
+
+# Groups that span brands. Fill in entity ids after the integrations are
+# added (Settings > Entities shows them), for example:
+#   light.hue_vardagsrum, light.plejd_kok, switch.tapo_p110_tv
+group:
+  all_heaters:
+    name: Alla värmare
+    entities: []   # climate.adax_*, climate.ebeco_*, climate.fibaro_*
+  all_lights:
+    name: Alla lampor
+    entities: []   # light.hue_*, light.plejd_*, light.fibaro_*, light.tapo_*
+
+automation:
+  - id: house_mode_away
+    alias: "Husläge: Borta sänker värme och släcker"
+    triggers:
+      - trigger: state
+        entity_id: input_select.house_mode
+        to:
+          - Borta
+          - Semester
+    actions:
+      - action: light.turn_off
+        target:
+          entity_id: group.all_lights
+      - action: climate.set_temperature
+        target:
+          entity_id: group.all_heaters
+        data:
+          temperature: "{{ states('input_number.away_temperature') | float }}"
+
+  - id: house_mode_home
+    alias: "Husläge: Hemma återställer värme"
+    triggers:
+      - trigger: state
+        entity_id: input_select.house_mode
+        to: Hemma
+    actions:
+      - action: climate.set_temperature
+        target:
+          entity_id: group.all_heaters
+        data:
+          temperature: "{{ states('input_number.comfort_temperature') | float }}"

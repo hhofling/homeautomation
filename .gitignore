@@ -1,0 +1,15 @@
+# Never commit real credentials or HA runtime state
+homeassistant/secrets.yaml
+esphome/secrets.yaml
+homeassistant/.storage/
+homeassistant/.cloud/
+homeassistant/.HA_VERSION
+homeassistant/home-assistant.log*
+homeassistant/home-assistant_v2.db*
+homeassistant/*.db
+homeassistant/custom_components/
+homeassistant/www/community/
+homeassistant/tts/
+homeassistant/deps/
+esphome/.esphome/
+.DS_Store
